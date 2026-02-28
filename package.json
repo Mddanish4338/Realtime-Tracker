@@ -1,0 +1,21 @@
+{
+  "name": "livelocation-blinkit",
+  "version": "2.0.0",
+  "description": "Blinkit-style real-time delivery tracker",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "keywords": ["realtime", "tracking", "socket.io", "leaflet"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
