@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -8,91 +9,79 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <!-- Leaflet Routing Machine CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" />
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" />
 
     <link rel="stylesheet" href="/css/style.css" />
 </head>
+
 <body>
 
-<!-- ═══════════════════════════════════ TOP STATUS BAR ══════════════════════════════════ -->
-<div id="status-bar">
-    <div id="connection-badge">
-        <span id="connection-dot"></span>
-        <span id="connection-text">Connecting...</span>
-    </div>
-    <div id="role-badge"></div>
-</div>
-
-<!-- ═══════════════════════════════════ INFO PANEL (Blinkit style) ═══════════════════════════════════ -->
-<div id="info-panel">
-    <div id="info-header">
-        <div id="eta-block">
-            <div id="eta-minutes">--</div>
-            <div id="eta-label">minutes away</div>
+    <!-- ═══════════════════════════════════ GREEN STATUS HEADER ══════════════════════════════════ -->
+    <div id="green-header">
+        <div id="header-top">
+            <button id="back-btn" onclick="window.history.back()">←</button>
+            <div id="order-status-text">Order is on the way</div>
         </div>
-        <div id="divider-line"></div>
-        <div id="distance-block">
-            <div id="distance-value">-- km</div>
-            <div id="distance-label">distance left</div>
+        <div id="eta-display">Arriving in <span id="eta-minutes">--</span> minutes</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ MAP ═══════════════════════════════════ -->
+    <div id="map"></div>
+
+    <!-- ═══════════════════════════════════ MAP CONTROLS ═══════════════════════════════════ -->
+    <div id="zoom-controls">
+        <button class="map-control-btn" id="center-btn" title="Center map">⊕</button>
+        <button class="map-control-btn" onclick="map.zoomIn()">+</button>
+        <button class="map-control-btn" onclick="map.zoomOut()">−</button>
+    </div>
+
+    <!-- ═══════════════════════════════════ ACTION STATUS ═══════════════════════════════════ -->
+    <div id="status-container">
+        <div class="action-bubble" id="partner-status-text">Connecting...</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ DISCONNECTION OVERLAY ═══════════════════════════════════ -->
+    <div id="disconnect-overlay" class="hidden">
+        <div id="disconnect-card">
+            <div id="disconnect-icon">📡</div>
+            <div id="disconnect-title">Partner Disconnected</div>
+            <div id="disconnect-msg">Waiting for partner to reconnect...</div>
+            <div id="disconnect-spinner"></div>
         </div>
-        <div id="divider-line2"></div>
-        <div id="speed-block">
-            <div id="speed-value">-- km/h</div>
-            <div id="speed-label">driver speed</div>
+    </div>
+
+    <!-- ═══════════════════════════════════ JOIN TRACKING ROOM OVERLAY ═══════════════════════════════════ -->
+    <div id="role-overlay">
+        <div id="role-card">
+            <h1 id="role-title">🚀 TrackLive</h1>
+            <p id="role-subtitle">Enter a Tracking ID to start sharing or tracking</p>
+
+            <div id="join-form">
+                <input type="text" id="room-input" placeholder="Enter Tracking ID (e.g. 12345)" maxlength="15"
+                    autocomplete="off">
+                <div id="role-options">
+                    <button class="role-btn driver-btn" onclick="joinRoom('driver')">
+                        🏍️ Join as Driver
+                        <span>Share your live route</span>
+                    </button>
+                    <button class="role-btn customer-btn" onclick="joinRoom('customer')">
+                        🏠 Join as Customer
+                        <span>Track your partner</span>
+                    </button>
+                </div>
+                <p id="error-text" class="hidden"></p>
+            </div>
         </div>
     </div>
-    <div id="info-subtext">
-        <span id="partner-status-text">Waiting for partner to connect...</span>
-    </div>
-</div>
 
-<!-- ═══════════════════════════════════ MAP ═══════════════════════════════════ -->
-<div id="map"></div>
-
-<!-- ═══════════════════════════════════ BOTTOM SHEET ═══════════════════════════════════ -->
-<div id="bottom-sheet">
-    <div id="bottom-handle"></div>
-    <div id="bottom-content">
-        <div id="order-icon">🛵</div>
-        <div id="order-info">
-            <div id="order-title">Order on the way</div>
-            <div id="order-subtitle">Your delivery partner is heading to you</div>
-        </div>
-        <button id="center-btn" title="Center map">⊕</button>
-    </div>
-</div>
-
-<!-- ═══════════════════════════════════ DISCONNECTION OVERLAY ═══════════════════════════════════ -->
-<div id="disconnect-overlay" class="hidden">
-    <div id="disconnect-card">
-        <div id="disconnect-icon">📡</div>
-        <div id="disconnect-title">Partner Disconnected</div>
-        <div id="disconnect-msg">Waiting for partner to reconnect...</div>
-        <div id="disconnect-spinner"></div>
-    </div>
-</div>
-
-<!-- ═══════════════════════════════════ ROLE SELECTION OVERLAY ═══════════════════════════════════ -->
-<div id="role-overlay" class="hidden">
-    <div id="role-card">
-        <div id="role-title">🚀 Live Tracker</div>
-        <div id="role-subtitle">Choose your role to start tracking</div>
-        <button class="role-btn driver-btn" onclick="selectRole('driver')">
-            🏍️ I'm the Driver
-            <span>Share your live location</span>
-        </button>
-        <button class="role-btn customer-btn" onclick="selectRole('customer')">
-            🏠 I'm the Customer
-            <span>Track your delivery</span>
-        </button>
-    </div>
-</div>
-
-<!-- Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.js"></script>
-<script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
-<script src="/js/script.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.js"></script>
+    <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+    <script src="/js/script.js"></script>
 
 </body>
+
 </html>

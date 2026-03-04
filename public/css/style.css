@@ -10,247 +10,144 @@
 }
 
 :root {
+    --blink-green: #2d7a2d;
+    /* Modern deep green */
+    --blink-dark: #121212;
+    /* True dark background */
+    --blink-card: #1e1e1e;
+    /* Surface color */
     --blink-yellow: #f8c200;
-    --blink-dark: #1a1a2e;
-    --blink-green: #00c851;
-    --blink-red: #ff4444;
-    --blink-gray: #f5f5f5;
-    --blink-text: #333;
-    --blink-subtext: #888;
-    --card-radius: 16px;
-    --shadow: 0 4px 24px rgba(0,0,0,0.12);
-    --shadow-strong: 0 8px 40px rgba(0,0,0,0.22);
-    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --blink-text-white: #ffffff;
+    --blink-text-gray: #b0b0b0;
+    --font: 'Outfit', 'Inter', -apple-system, sans-serif;
 }
 
-html, body {
+html,
+body {
     width: 100%;
     height: 100%;
     overflow: hidden;
     font-family: var(--font);
-    background: #f0f0f0;
+    background: var(--blink-dark);
+    color: var(--blink-text-white);
 }
 
 /* ─────────────────── MAP ─────────────────── */
 #map {
     position: absolute;
-    top: 0; left: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     z-index: 1;
 }
 
 /* ─────────────────── STATUS BAR ─────────────────── */
-#status-bar {
+/* ─────────────────── GREEN HEADER ─────────────────── */
+#green-header {
     position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--blink-green);
+    padding: 16px 20px 24px;
     z-index: 1000;
+    text-align: center;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+#header-top {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 8px;
+}
+
+#back-btn {
+    position: absolute;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+#order-status-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+#eta-display {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -0.5px;
+}
+
+/* ─────────────────── ACTION STATUS ─────────────────── */
+#status-container {
+    position: absolute;
+    bottom: 30px;
+    left: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
     pointer-events: none;
 }
 
-#connection-badge {
-    background: white;
+.action-bubble {
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 8px 16px;
     border-radius: 20px;
-    padding: 6px 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: var(--shadow);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--blink-text);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-#connection-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #ccc;
-    transition: background 0.3s;
-}
-
-#connection-dot.connected { background: var(--blink-green); animation: pulse-green 2s infinite; }
-#connection-dot.disconnected { background: var(--blink-red); }
-#connection-dot.reconnecting { background: var(--blink-yellow); animation: pulse-yellow 1s infinite; }
-
-@keyframes pulse-green {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(0,200,81,0.5); }
-    50% { box-shadow: 0 0 0 5px rgba(0,200,81,0); }
-}
-@keyframes pulse-yellow {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(248,194,0,0.6); }
-    50% { box-shadow: 0 0 0 5px rgba(248,194,0,0); }
-}
-
-#role-badge {
-    background: var(--blink-yellow);
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 12px;
-    font-weight: 700;
-    color: #333;
-    box-shadow: var(--shadow);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* ─────────────────── INFO PANEL ─────────────────── */
-#info-panel {
+#zoom-controls {
     position: absolute;
-    top: 56px;
-    left: 12px;
-    right: 12px;
+    right: 16px;
+    top: 180px;
     z-index: 1000;
-    background: white;
-    border-radius: var(--card-radius);
-    box-shadow: var(--shadow-strong);
-    padding: 14px 16px 10px;
-    transition: opacity 0.3s, transform 0.3s;
-}
-
-#info-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-}
-
-#eta-block, #distance-block, #speed-block {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    flex: 1;
+    gap: 8px;
 }
 
-#eta-minutes {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--blink-dark);
-    line-height: 1;
-}
-
-#eta-label, #distance-label, #speed-label {
-    font-size: 11px;
-    color: var(--blink-subtext);
-    margin-top: 3px;
-    font-weight: 500;
-}
-
-#distance-value {
-    font-size: 20px;
-    font-weight: 800;
-    color: var(--blink-dark);
-    line-height: 1;
-}
-
-#speed-value {
-    font-size: 16px;
-    font-weight: 700;
-    color: #555;
-    line-height: 1;
-}
-
-#divider-line, #divider-line2 {
-    width: 1px;
-    height: 36px;
-    background: #e8e8e8;
-}
-
-#info-subtext {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid #f0f0f0;
-    text-align: center;
-}
-
-#partner-status-text {
-    font-size: 12px;
-    color: var(--blink-subtext);
-    font-weight: 500;
-}
-
-/* ─────────────────── BOTTOM SHEET ─────────────────── */
-#bottom-sheet {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: white;
-    border-radius: 20px 20px 0 0;
-    box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
-    padding: 12px 20px 28px;
-}
-
-#bottom-handle {
-    width: 36px;
-    height: 4px;
-    background: #e0e0e0;
-    border-radius: 2px;
-    margin: 0 auto 12px;
-}
-
-#bottom-content {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-#order-icon {
-    font-size: 32px;
-    width: 52px;
-    height: 52px;
-    background: var(--blink-yellow);
-    border-radius: 14px;
+.map-control-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
     display: flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-}
-
-#order-info {
-    flex: 1;
-}
-
-#order-title {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--blink-dark);
-}
-
-#order-subtitle {
-    font-size: 12px;
-    color: var(--blink-subtext);
-    margin-top: 2px;
-}
-
-#center-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: none;
-    background: var(--blink-gray);
-    font-size: 22px;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: background 0.2s;
+    font-size: 18px;
 }
-
-#center-btn:hover { background: #e0e0e0; }
 
 /* ─────────────────── DISCONNECT OVERLAY ─────────────────── */
 #disconnect-overlay {
     position: absolute;
     inset: 0;
     z-index: 2000;
-    background: rgba(0,0,0,0.55);
+    background: rgba(0, 0, 0, 0.55);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -302,54 +199,82 @@ html, body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-/* ─────────────────── ROLE SELECTION OVERLAY ─────────────────── */
 #role-overlay {
     position: absolute;
     inset: 0;
     z-index: 3000;
-    background: rgba(26,26,46,0.92);
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(6px);
-}
-
-#role-overlay.hidden {
-    display: none;
+    padding: 20px;
 }
 
 #role-card {
-    background: white;
-    border-radius: 24px;
-    padding: 36px 28px;
-    max-width: 340px;
-    width: 92%;
-    box-shadow: var(--shadow-strong);
+    background: #1e1e1e;
+    border-radius: 28px;
+    padding: 40px 24px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 #role-title {
-    font-size: 26px;
+    font-size: 32px;
     font-weight: 800;
-    color: var(--blink-dark);
+    color: white;
     margin-bottom: 8px;
+    background: linear-gradient(45deg, var(--blink-yellow), #fff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 #role-subtitle {
-    font-size: 13px;
-    color: var(--blink-subtext);
-    margin-bottom: 28px;
-    line-height: 1.5;
+    font-size: 14px;
+    color: var(--blink-text-gray);
+    margin-bottom: 32px;
+}
+
+#join-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#room-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    color: white;
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+#room-input:focus {
+    border-color: var(--blink-yellow);
+}
+
+#role-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .role-btn {
-    width: 100%;
     border: none;
-    border-radius: 14px;
-    padding: 16px 20px;
+    border-radius: 16px;
+    padding: 20px;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
@@ -357,33 +282,37 @@ html, body {
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    transition: transform 0.15s, box-shadow 0.15s;
-    margin-bottom: 14px;
+    transition: transform 0.15s;
 }
 
 .role-btn span {
     font-size: 12px;
     font-weight: 400;
-    opacity: 0.75;
-}
-
-.role-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-}
-
-.role-btn:active {
-    transform: translateY(0);
+    opacity: 0.6;
 }
 
 .driver-btn {
     background: var(--blink-yellow);
-    color: #222;
+    color: #000;
 }
 
 .customer-btn {
-    background: var(--blink-dark);
-    color: white;
+    background: white;
+    color: #000;
+}
+
+.role-btn:active {
+    transform: scale(0.98);
+}
+
+#error-text {
+    color: #ff4444;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+#error-text.hidden {
+    display: none;
 }
 
 /* ─────────────────── CUSTOM LEAFLET MARKERS ─────────────────── */
@@ -393,18 +322,25 @@ html, body {
 
 .driver-marker-icon {
     font-size: 28px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
     animation: bike-bounce 1.5s ease-in-out infinite;
 }
 
 @keyframes bike-bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
 }
 
 .customer-marker-icon {
     font-size: 32px;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.35));
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
 }
 
 /* Accuracy circle pulsing */
@@ -427,5 +363,7 @@ html, body {
 }
 
 @keyframes dash-flow {
-    to { stroke-dashoffset: -14; }
+    to {
+        stroke-dashoffset: -14;
+    }
 }
