@@ -18,7 +18,6 @@ let driverSocketId = null;
 let customerSocketId = null;
 
 io.on("connection", function (socket) {
-    console.log(`[+] Socket connected: ${socket.id}`);
 
     socket.on("register-role", function (data) {
         const { role } = data;
@@ -28,7 +27,6 @@ io.on("connection", function (socket) {
         if (role === 'customer') customerSocketId = socket.id;
 
         connectedUsers[socket.id] = { role, latitude: null, longitude: null };
-        console.log(`[R] ${role} registered: ${socket.id}`);
 
         const otherRole = role === 'driver' ? 'customer' : 'driver';
         const otherSocketId = role === 'driver' ? customerSocketId : driverSocketId;
@@ -79,7 +77,6 @@ io.on("connection", function (socket) {
         const user = connectedUsers[socket.id];
         if (!user) return;
 
-        console.log(`[-] ${user.role} disconnected (${socket.id})`);
         const otherSocketId = user.role === 'driver' ? customerSocketId : driverSocketId;
 
         if (otherSocketId && connectedUsers[otherSocketId]) {
@@ -102,5 +99,5 @@ app.get("/", function (req, res) {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Blinkit Tracker server running on http://localhost:${PORT}`);
+    console.log(`Tracker server running on http://localhost:${PORT}`);
 });

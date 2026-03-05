@@ -311,12 +311,10 @@ body {
 
 .driver-dot {
     background: #1a73e8;
-    /* Google Blue */
 }
 
 .customer-dot {
     background: #ea4335;
-    /* Google Red */
 }
 
 .driver-marker-wrap,
@@ -327,35 +325,6 @@ body {
 .driver-marker-wrap {
     position: relative;
     z-index: 1000 !important;
-}
-
-.driver-marker-icon {
-    font-size: 28px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-    animation: bike-bounce 1.5s ease-in-out infinite;
-}
-
-@keyframes bike-bounce {
-
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-
-    50% {
-        transform: translateY(-3px);
-    }
-}
-
-.customer-marker-icon {
-    font-size: 32px;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
-}
-
-.accuracy-circle {
-    background: rgba(248, 194, 0, 0.15);
-    border: 2px solid rgba(248, 194, 0, 0.5);
-    border-radius: 50%;
 }
 
 .leaflet-routing-container {

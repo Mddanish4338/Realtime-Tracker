@@ -57,7 +57,6 @@ function createCustomerIcon() {
 const socket = io();
 
 socket.on('connect', () => {
-    console.log('[Socket] Connected:', socket.id);
     if (myRole) {
         socket.emit('register-role', { role: myRole });
     }
@@ -65,13 +64,11 @@ socket.on('connect', () => {
 });
 
 socket.on('partner-connected', (data) => {
-    console.log('[Socket] Partner connected:', data.role);
     isPartnerConnected = true;
     if (disconnectOverlay) disconnectOverlay.classList.add('hidden');
 });
 
 socket.on('partner-disconnected', (data) => {
-    console.log('[Socket] Partner disconnected:', data.role);
     isPartnerConnected = false;
 
     if (disconnectOverlay) {
@@ -118,7 +115,6 @@ function selectRole(role) {
 
     socket.emit('register-role', { role: role });
     startLocationTracking();
-    console.log('[App] Role selected:', role);
 }
 
 function startLocationTracking() {
@@ -151,7 +147,7 @@ function startLocationTracking() {
                 updateRoute(dPos, cPos);
             }
         },
-        (err) => console.warn('[Geo] Error:', err),
+        (err) => { },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
 }
