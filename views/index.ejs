@@ -6,9 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Live Tracker</title>
 
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-    <!-- Leaflet Routing Machine CSS -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.css" />
 
@@ -17,7 +15,6 @@
 
 <body>
 
-    <!-- ═══════════════════════════════════ GREEN STATUS HEADER ══════════════════════════════════ -->
     <div id="green-header">
         <div id="header-top">
             <button id="back-btn" onclick="window.history.back()">←</button>
@@ -26,22 +23,14 @@
         <div id="eta-display">Arriving in <span id="eta-minutes">--</span> minutes</div>
     </div>
 
-    <!-- ═══════════════════════════════════ MAP ═══════════════════════════════════ -->
     <div id="map"></div>
 
-    <!-- ═══════════════════════════════════ MAP CONTROLS ═══════════════════════════════════ -->
     <div id="zoom-controls">
         <button class="map-control-btn" id="center-btn" title="Center map">⊕</button>
         <button class="map-control-btn" onclick="map.zoomIn()">+</button>
         <button class="map-control-btn" onclick="map.zoomOut()">−</button>
     </div>
 
-    <!-- ═══════════════════════════════════ ACTION STATUS ═══════════════════════════════════ -->
-    <div id="status-container">
-        <div class="action-bubble" id="partner-status-text">Connecting...</div>
-    </div>
-
-    <!-- ═══════════════════════════════════ DISCONNECTION OVERLAY ═══════════════════════════════════ -->
     <div id="disconnect-overlay" class="hidden">
         <div id="disconnect-card">
             <div id="disconnect-icon">📡</div>
@@ -51,31 +40,21 @@
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════ JOIN TRACKING ROOM OVERLAY ═══════════════════════════════════ -->
-    <div id="role-overlay">
+    <div id="role-overlay" class="hidden">
         <div id="role-card">
-            <h1 id="role-title">🚀 TrackLive</h1>
-            <p id="role-subtitle">Enter a Tracking ID to start sharing or tracking</p>
-
-            <div id="join-form">
-                <input type="text" id="room-input" placeholder="Enter Tracking ID (e.g. 12345)" maxlength="15"
-                    autocomplete="off">
-                <div id="role-options">
-                    <button class="role-btn driver-btn" onclick="joinRoom('driver')">
-                        🏍️ Join as Driver
-                        <span>Share your live route</span>
-                    </button>
-                    <button class="role-btn customer-btn" onclick="joinRoom('customer')">
-                        🏠 Join as Customer
-                        <span>Track your partner</span>
-                    </button>
-                </div>
-                <p id="error-text" class="hidden"></p>
-            </div>
+            <div id="role-title">🚀 Live Tracker</div>
+            <div id="role-subtitle">Choose your role to start tracking</div>
+            <button class="role-btn driver-btn" onclick="selectRole('driver')">
+                🏍️ I'm the Driver
+                <span>Share your live location</span>
+            </button>
+            <button class="role-btn customer-btn" onclick="selectRole('customer')">
+                🏠 I'm the Customer
+                <span>Track your delivery</span>
+            </button>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script
         src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-routing-machine/3.2.12/leaflet-routing-machine.js"></script>

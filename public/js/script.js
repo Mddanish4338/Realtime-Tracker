@@ -1,10 +1,9 @@
-// ─── Constants ─────────────────────────────────────────────────────
 const AVG_SPEED_KMPH = 30;
 const LOCATION_UPDATE_INTERVAL = 2000;
 const HEARTBEAT_INTERVAL = 15000;
 
-// ─── State ───────────────────────────────────────────────────────────────────
-let myRoomId = null;
+const PATH_COLOR = '#1a73e8';
+
 let myRole = null;
 let myLocation = null;
 let partnerLocation = null;
@@ -17,70 +16,66 @@ let driverMarker = null;
 let customerMarker = null;
 let mapCenteredOnce = false;
 
-// ─── DOM Elements ────────────────────────────────────────────────────────────
 const etaMinutes = document.getElementById('eta-minutes');
-const partnerStatusText = document.getElementById('partner-status-text');
 const disconnectOverlay = document.getElementById('disconnect-overlay');
 const disconnectMsg = document.getElementById('disconnect-msg');
 const roleOverlay = document.getElementById('role-overlay');
 const centerBtn = document.getElementById('center-btn');
-const roomInput = document.getElementById('room-input');
-const errorText = document.getElementById('error-text');
 
-// ─── Initialize Map ──────────────────────────────────────────────────────────
 const map = L.map('map', {
     zoomControl: false,
     attributionControl: false
 }).setView([0, 0], 16);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
     subdomains: 'abcd',
     attribution: '&copy; CartoDB'
 }).addTo(map);
 
-// Force resize multiple times to ensure visibility
 setTimeout(() => { map.invalidateSize(); }, 500);
 setTimeout(() => { map.invalidateSize(); }, 2000);
 
-// ─── Socket.IO Setup ──────────────────────────────────────────────────────────
-const socket = io();
+function createDriverIcon() {
+    return L.divIcon({
+        className: 'driver-marker-wrap',
+        html: `<div class="minimal-marker driver-dot"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+}
 
-// ─── Socket Events ────────────────────────────────────────────────────────────
+function createCustomerIcon() {
+    return L.divIcon({
+        className: 'customer-marker-wrap',
+        html: `<div class="minimal-marker customer-dot"></div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+    });
+}
+
+const socket = io();
 
 socket.on('connect', () => {
     console.log('[Socket] Connected:', socket.id);
-    if (myRoomId && myRole) {
-        socket.emit('join-room', { roomId: myRoomId, role: myRole });
+    if (myRole) {
+        socket.emit('register-role', { role: myRole });
     }
     startHeartbeat();
-    if (partnerStatusText) partnerStatusText.textContent = "Connected";
-});
-
-socket.on('error-msg', (data) => {
-    if (errorText) {
-        errorText.textContent = data.message;
-        errorText.classList.remove('hidden');
-    }
-    roleOverlay.style.display = 'flex';
-    myRole = null;
-    myRoomId = null;
 });
 
 socket.on('partner-connected', (data) => {
     console.log('[Socket] Partner connected:', data.role);
     isPartnerConnected = true;
-    if (partnerStatusText) partnerStatusText.textContent = `${data.role} joined the room`;
     if (disconnectOverlay) disconnectOverlay.classList.add('hidden');
 });
 
 socket.on('partner-disconnected', (data) => {
     console.log('[Socket] Partner disconnected:', data.role);
     isPartnerConnected = false;
-    if (partnerStatusText) partnerStatusText.textContent = `${data.role} left the room`;
 
     if (disconnectOverlay) {
-        disconnectMsg.textContent = `${data.role === 'driver' ? 'Driver' : 'Customer'} disconnected. Waiting to reconnect...`;
+        disconnectMsg.textContent = `${data.role === 'driver' ? 'Driver' : 'Customer'} disconnected. Waiting...`;
         disconnectOverlay.classList.remove('hidden');
     }
 
@@ -117,26 +112,14 @@ socket.on('receive-location', (data) => {
     }
 });
 
-// ─── Room Join Logic ──────────────────────────────────────────────────────────
-
-function joinRoom(role, ridFromUrl = null) {
-    const rid = ridFromUrl || roomInput.value.trim();
-    if (!rid) {
-        errorText.textContent = "Please enter a Tracking ID";
-        errorText.classList.remove('hidden');
-        return;
-    }
-
-    myRoomId = rid;
+function selectRole(role) {
     myRole = role;
-    roleOverlay.style.display = 'none';
+    roleOverlay.classList.add('hidden');
 
-    socket.emit('join-room', { roomId: rid, role: role });
+    socket.emit('register-role', { role: role });
     startLocationTracking();
-    console.log('[App] Joined room:', rid, 'as', role);
+    console.log('[App] Role selected:', role);
 }
-
-// ─── Geolocation Tracking ─────────────────────────────────────────────────────
 
 function startLocationTracking() {
     if (!navigator.geolocation) return;
@@ -150,7 +133,7 @@ function startLocationTracking() {
             myLocation = { latitude, longitude, accuracy, heading, speed };
 
             if (myRole === 'driver') updateDriverMarker(latitude, longitude);
-            else updateCustomerMarker(latitude, longitude);
+            else if (myRole === 'customer') updateCustomerMarker(latitude, longitude);
 
             if (!mapCenteredOnce) {
                 map.setView([latitude, longitude], 16);
@@ -173,13 +156,14 @@ function startLocationTracking() {
     );
 }
 
-// ─── Marker Updates (Standard Markers) ───────────────────────────────────────
-
 function updateDriverMarker(lat, lng) {
     if (driverMarker) {
         driverMarker.setLatLng([lat, lng]);
     } else {
-        driverMarker = L.marker([lat, lng], { title: "Driver" }).addTo(map);
+        driverMarker = L.marker([lat, lng], {
+            icon: createDriverIcon(),
+            zIndexOffset: 1000
+        }).addTo(map);
         driverMarker.bindPopup("Driver Location").openPopup();
     }
 }
@@ -188,12 +172,13 @@ function updateCustomerMarker(lat, lng) {
     if (customerMarker) {
         customerMarker.setLatLng([lat, lng]);
     } else {
-        customerMarker = L.marker([lat, lng], { title: "Customer" }).addTo(map);
+        customerMarker = L.marker([lat, lng], {
+            icon: createCustomerIcon(),
+            zIndexOffset: 900
+        }).addTo(map);
         customerMarker.bindPopup("Destination").openPopup();
     }
 }
-
-// ─── Routing ──────────────────────────────────────────────────────────────────
 
 function updateRoute(driverPos, customerPos) {
     const from = L.latLng(driverPos.latitude, driverPos.longitude);
@@ -210,7 +195,7 @@ function updateRoute(driverPos, customerPos) {
             show: false,
             createMarker: () => null,
             lineOptions: {
-                styles: [{ color: '#4285F4', weight: 6, opacity: 0.8 }]
+                styles: [{ color: '#1a73e8', weight: 6, opacity: 0.8, className: 'route-line-animated' }]
             },
             router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' })
         }).addTo(map);
@@ -229,16 +214,12 @@ function removeRoutingControl() {
     }
 }
 
-// ─── Heartbeat ────────────────────────────────────────────────────────────────
-
 function startHeartbeat() {
     if (heartbeatTimer) clearInterval(heartbeatTimer);
     heartbeatTimer = setInterval(() => {
         if (socket.connected) socket.emit('heartbeat');
     }, HEARTBEAT_INTERVAL);
 }
-
-// ─── Center Map ───────────────────────────────────────────────────────────────
 
 centerBtn.addEventListener('click', () => {
     if (myLocation && partnerLocation) {
@@ -249,27 +230,14 @@ centerBtn.addEventListener('click', () => {
     }
 });
 
-// ─── Online/Offline Detection ─────────────────────────────────────────────────
-
-window.addEventListener('online', () => {
-    if (socket.disconnected) socket.connect();
-});
-
-window.addEventListener('offline', () => {
-    if (partnerStatusText) partnerStatusText.textContent = "Offline";
-});
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
-
 window.onload = () => {
     map.invalidateSize();
 
-    // Auto-join from URL if params exist
     const params = new URLSearchParams(window.location.search);
-    const rid = params.get('room');
     const role = params.get('role');
-    if (rid && role) {
-        roomInput.value = rid;
-        joinRoom(role, rid);
+    if (role === 'driver' || role === 'customer') {
+        selectRole(role);
+    } else {
+        roleOverlay.classList.remove('hidden');
     }
 };

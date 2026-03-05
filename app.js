@@ -13,73 +13,55 @@ const io = socketio(server, {
 app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));
 
-const rooms = {};
+const connectedUsers = {};
+let driverSocketId = null;
+let customerSocketId = null;
 
 io.on("connection", function (socket) {
     console.log(`[+] Socket connected: ${socket.id}`);
 
-    socket.on("join-room", function (data) {
-        const { roomId, role } = data;
-        if (!roomId || !role) return;
+    socket.on("register-role", function (data) {
+        const { role } = data;
+        if (role !== 'driver' && role !== 'customer') return;
 
-        socket.join(roomId);
-        socket.roomId = roomId;
-        socket.role = role;
+        if (role === 'driver') driverSocketId = socket.id;
+        if (role === 'customer') customerSocketId = socket.id;
 
-        if (!rooms[roomId]) {
-            rooms[roomId] = { driver: null, customer: null };
-        }
+        connectedUsers[socket.id] = { role, latitude: null, longitude: null };
+        console.log(`[R] ${role} registered: ${socket.id}`);
 
-        // Prevent multiple drivers/customers in the same room
-        if (role === 'driver') {
-            if (rooms[roomId].driver) {
-                socket.emit("error-msg", { message: "Driver already in this room." });
-                return;
-            }
-            rooms[roomId].driver = { id: socket.id, lat: null, lng: null };
-        } else if (role === 'customer') {
-            if (rooms[roomId].customer) {
-                socket.emit("error-msg", { message: "Customer already in this room." });
-                return;
-            }
-            rooms[roomId].customer = { id: socket.id, lat: null, lng: null };
-        }
+        const otherRole = role === 'driver' ? 'customer' : 'driver';
+        const otherSocketId = role === 'driver' ? customerSocketId : driverSocketId;
 
-        console.log(`[R] ${role} joined room ${roomId}: ${socket.id}`);
+        if (otherSocketId && connectedUsers[otherSocketId]) {
+            socket.emit("partner-connected", { role: otherRole });
+            io.to(otherSocketId).emit("partner-connected", { role });
 
-        // Notify others in room
-        socket.to(roomId).emit("partner-connected", { role });
-
-        // If partner exists, notify the joiner
-        const partnerRole = role === 'driver' ? 'customer' : 'driver';
-        const partner = rooms[roomId][partnerRole];
-        if (partner) {
-            socket.emit("partner-connected", { role: partnerRole });
-            if (partner.lat !== null) {
+            const other = connectedUsers[otherSocketId];
+            if (other.latitude !== null) {
                 socket.emit("receive-location", {
-                    id: partner.id,
-                    role: partnerRole,
-                    latitude: partner.lat,
-                    longitude: partner.lng
+                    id: otherSocketId,
+                    role: other.role,
+                    latitude: other.latitude,
+                    longitude: other.longitude
                 });
             }
         }
     });
 
     socket.on("send-location", function (data) {
-        const { roomId, role } = socket;
-        if (!roomId || !role || !rooms[roomId]) return;
+        const user = connectedUsers[socket.id];
+        if (!user) return;
 
-        const room = rooms[roomId];
-        const me = room[role];
-        if (!me) return;
-
-        me.lat = data.latitude;
-        me.lng = data.longitude;
+        user.latitude = data.latitude;
+        user.longitude = data.longitude;
+        user.accuracy = data.accuracy;
+        user.heading = data.heading;
+        user.speed = data.speed;
 
         const payload = {
             id: socket.id,
-            role: role,
+            role: user.role,
             latitude: data.latitude,
             longitude: data.longitude,
             accuracy: data.accuracy,
@@ -87,20 +69,26 @@ io.on("connection", function (socket) {
             speed: data.speed
         };
 
-        socket.to(roomId).emit("receive-location", payload);
+        const otherSocketId = user.role === 'driver' ? customerSocketId : driverSocketId;
+        if (otherSocketId && connectedUsers[otherSocketId]) {
+            io.to(otherSocketId).emit("receive-location", payload);
+        }
     });
 
     socket.on("disconnect", function (reason) {
-        const { roomId, role } = socket;
-        if (roomId && role && rooms[roomId]) {
-            console.log(`[-] ${role} left room ${roomId} (${socket.id})`);
-            socket.to(roomId).emit("partner-disconnected", { role });
-            rooms[roomId][role] = null;
+        const user = connectedUsers[socket.id];
+        if (!user) return;
 
-            if (!rooms[roomId].driver && !rooms[roomId].customer) {
-                delete rooms[roomId];
-            }
+        console.log(`[-] ${user.role} disconnected (${socket.id})`);
+        const otherSocketId = user.role === 'driver' ? customerSocketId : driverSocketId;
+
+        if (otherSocketId && connectedUsers[otherSocketId]) {
+            io.to(otherSocketId).emit("partner-disconnected", { role: user.role });
         }
+
+        delete connectedUsers[socket.id];
+        if (user.role === 'driver') driverSocketId = null;
+        if (user.role === 'customer') customerSocketId = null;
     });
 
     socket.on("heartbeat", function () {
